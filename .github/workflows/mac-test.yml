@@ -1,0 +1,34 @@
+name: AGNI-X MAC Test
+
+on:
+  push:
+    paths:
+      - "rtl/**"
+      - ".github/workflows/mac-test.yml"
+  pull_request:
+    paths:
+      - "rtl/**"
+
+jobs:
+  simulation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Compile MAC
+        run: |
+          iverilog -g2012 \
+            -o mac_sim \
+            rtl/mac.sv \
+            rtl/mac_tb.sv
+
+      - name: Run MAC simulation
+        run: |
+          vvp mac_sim
