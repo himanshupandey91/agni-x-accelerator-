@@ -32,3 +32,14 @@ jobs:
       - name: Run MAC simulation
         run: |
           vvp mac_sim
+
+      - name: Compile Accelerator
+        run: |
+          iverilog -g2012 \
+            -o accelerator_sim \
+            rtl/accelerator.sv \
+            rtl/accelerator_tb.sv
+
+      - name: Run Accelerator simulation
+        run: |
+          vvp accelerator_sim
