@@ -13,7 +13,9 @@ module mac_tb;
 
     logic signed [(2*WIDTH)-1:0] acc;
 
+    // ------------------------------------------------------------
     // DUT
+    // ------------------------------------------------------------
     mac #(
         .WIDTH(WIDTH)
     ) dut (
@@ -29,255 +31,369 @@ module mac_tb;
     // Clock
     // ------------------------------------------------------------
     initial begin
-        clk = 0;
+        clk = 1'b0;
         forever #5 clk = ~clk;
     end
 
     // ------------------------------------------------------------
-    // Main test
+    // Main verification
     // ------------------------------------------------------------
     initial begin
 
-        // Initial values
-        rst = 0;
-        en  = 0;
-        a   = 0;
-        b   = 0;
+        rst = 1'b1;
+        en  = 1'b0;
+        a   = '0;
+        b   = '0;
 
         // --------------------------------------------------------
-        // Existing unsigned/basic tests
+        // Initial reset
         // --------------------------------------------------------
-
-        // Reset
-        rst = 1;
-        en  = 0;
-        #10;
+        @(posedge clk);
+        #1;
 
         if (acc !== 0)
-            $fatal(1, "RESET FAILED: acc = %0d", acc);
+            $fatal(1, "INITIAL RESET FAILED: acc=%0d", acc);
 
-        $display("RESET PASSED: acc = %0d", acc);
+        $display("INITIAL RESET PASSED: acc=%0d", acc);
 
-        rst = 0;
-        en  = 1;
+        rst = 1'b0;
 
-        // 2 × 3 = 6
-        a = 2;
-        b = 3;
-        #10;
+        // --------------------------------------------------------
+        // Basic directed tests
+        // --------------------------------------------------------
+        en = 1'b1;
+
+        a = 8'sd2;
+        b = 8'sd3;
+
+        @(posedge clk);
+        #1;
 
         if (acc !== 16'sd6)
-            $fatal(1, "TEST 1 FAILED: acc = %0d", acc);
+            $fatal(1, "BASIC TEST 1 FAILED: acc=%0d", acc);
 
-        $display("TEST 1 PASSED: acc = %0d", acc);
+        $display("BASIC TEST 1 PASSED: 2 x 3 = %0d", acc);
 
-        // 4 × 5 = 20
-        // 6 + 20 = 26
-        a = 4;
-        b = 5;
-        #10;
+
+        a = 8'sd4;
+        b = 8'sd5;
+
+        @(posedge clk);
+        #1;
 
         if (acc !== 16'sd26)
-            $fatal(1, "TEST 2 FAILED: acc = %0d", acc);
+            $fatal(1, "BASIC TEST 2 FAILED: acc=%0d", acc);
 
-        $display("TEST 2 PASSED: acc = %0d", acc);
+        $display("BASIC TEST 2 PASSED: acc=%0d", acc);
 
-        // 2 × 6 = 12
-        // 26 + 12 = 38
-        a = 2;
-        b = 6;
-        #10;
 
-        if (acc !== 16'sd38)
-            $fatal(1, "TEST 3 FAILED: acc = %0d", acc);
+        // --------------------------------------------------------
+        // Signed tests
+        // --------------------------------------------------------
 
-        $display("TEST 3 PASSED: acc = %0d", acc);
+        // Reset accumulator
+        rst = 1'b1;
+        en  = 1'b0;
 
-        // Disable enable
-        en = 0;
-        a  = 10;
-        b  = 10;
-        #10;
-
-        if (acc !== 16'sd38)
-            $fatal(1, "ENABLE TEST FAILED: acc = %0d", acc);
-
-        $display("ENABLE TEST PASSED: acc = %0d", acc);
-
-        // Reset again
-        rst = 1;
-        en  = 0;
-        #10;
+        @(posedge clk);
+        #1;
 
         if (acc !== 0)
-            $fatal(1, "RESET TEST FAILED: acc = %0d", acc);
+            $fatal(1, "SIGNED RESET FAILED: acc=%0d", acc);
 
-        $display("RESET TEST PASSED: acc = %0d", acc);
-
-        rst = 0;
-        en  = 1;
-
-        // 12 × 8 = 96
-        a = 12;
-        b = 8;
-        #10;
-
-        if (acc !== 16'sd96)
-            $fatal(1, "TEST 4 FAILED: acc = %0d", acc);
-
-        $display("TEST 4 PASSED: acc = %0d", acc);
+        rst = 1'b0;
+        en  = 1'b1;
 
 
-        // --------------------------------------------------------
-        // Manual signed arithmetic tests
-        // --------------------------------------------------------
+        // -3 x 4 = -12
+        a = -8'sd3;
+        b =  8'sd4;
 
-        // Reset
-        rst = 1;
-        en  = 0;
-        #10;
-
-        rst = 0;
-        en  = 1;
-
-        // -3 × 4 = -12
-        a = -3;
-        b = 4;
-        #10;
+        @(posedge clk);
+        #1;
 
         if (acc !== -16'sd12)
-            $fatal(1, "SIGNED TEST 1 FAILED: acc = %0d", acc);
+            $fatal(1, "SIGNED TEST 1 FAILED: acc=%0d", acc);
 
-        $display("SIGNED TEST 1 PASSED: acc = %0d", acc);
+        $display("SIGNED TEST 1 PASSED: acc=%0d", acc);
 
-        // -2 × -5 = +10
+
+        // -2 x -5 = +10
         // -12 + 10 = -2
-        a = -2;
-        b = -5;
-        #10;
+        a = -8'sd2;
+        b = -8'sd5;
+
+        @(posedge clk);
+        #1;
 
         if (acc !== -16'sd2)
-            $fatal(1, "SIGNED TEST 2 FAILED: acc = %0d", acc);
+            $fatal(1, "SIGNED TEST 2 FAILED: acc=%0d", acc);
 
-        $display("SIGNED TEST 2 PASSED: acc = %0d", acc);
+        $display("SIGNED TEST 2 PASSED: acc=%0d", acc);
 
-        // 7 × -3 = -21
+
+        // 7 x -3 = -21
         // -2 - 21 = -23
-        a = 7;
-        b = -3;
-        #10;
+        a =  8'sd7;
+        b = -8'sd3;
+
+        @(posedge clk);
+        #1;
 
         if (acc !== -16'sd23)
-            $fatal(1, "SIGNED TEST 3 FAILED: acc = %0d", acc);
+            $fatal(1, "SIGNED TEST 3 FAILED: acc=%0d", acc);
 
-        $display("SIGNED TEST 3 PASSED: acc = %0d", acc);
+        $display("SIGNED TEST 3 PASSED: acc=%0d", acc);
 
 
         // --------------------------------------------------------
-        // 1000 CASE RANDOM SIGNED VERIFICATION
+        // ENABLE HOLD TEST
+        // --------------------------------------------------------
+        rst = 1'b1;
+        en  = 1'b0;
+
+        @(posedge clk);
+        #1;
+
+        rst = 1'b0;
+
+        en = 1'b1;
+        a  = 8'sd10;
+        b  = 8'sd10;
+
+        @(posedge clk);
+        #1;
+
+        if (acc !== 16'sd100)
+            $fatal(1, "ENABLE SETUP FAILED: acc=%0d", acc);
+
+        en = 1'b0;
+
+        a = 8'sd127;
+        b = 8'sd127;
+
+        @(posedge clk);
+        #1;
+
+        if (acc !== 16'sd100)
+            $fatal(1, "ENABLE HOLD FAILED: acc=%0d", acc);
+
+        $display("ENABLE HOLD TEST PASSED: acc=%0d", acc);
+
+
+        // --------------------------------------------------------
+        // CORNER-CASE TESTS
         // --------------------------------------------------------
 
-        run_random_signed_tests(1000);
+        rst = 1'b1;
+        en  = 1'b0;
 
+        @(posedge clk);
+        #1;
+
+        rst = 1'b0;
+        en  = 1'b1;
+
+
+        // 0 x 127
+        a = 8'sd0;
+        b = 8'sd127;
+
+        @(posedge clk);
+        #1;
+
+        if (acc !== 16'sd0)
+            $fatal(1, "CORNER 0x127 FAILED: acc=%0d", acc);
+
+
+        // 1 x 127
+        a = 8'sd1;
+        b = 8'sd127;
+
+        @(posedge clk);
+        #1;
+
+        if (acc !== 16'sd127)
+            $fatal(1, "CORNER 1x127 FAILED: acc=%0d", acc);
+
+
+        // -1 x 127 = -127
+        // 127 - 127 = 0
+        a = -8'sd1;
+        b =  8'sd127;
+
+        @(posedge clk);
+        #1;
+
+        if (acc !== 16'sd0)
+            $fatal(1, "CORNER -1x127 FAILED: acc=%0d", acc);
+
+
+        // 127 x 127 = 16129
+        a = 8'sd127;
+        b = 8'sd127;
+
+        @(posedge clk);
+        #1;
+
+        if (acc !== 16'sd16129)
+            $fatal(1, "CORNER 127x127 FAILED: acc=%0d", acc);
+
+
+        // --------------------------------------------------------
+        // Exhaustive verification
+        // 256 x 256 = 65,536 cases
+        // --------------------------------------------------------
+
+        run_exhaustive_tests();
+
+
+        // --------------------------------------------------------
+        // FINAL
+        // --------------------------------------------------------
         $display("");
-        $display("==============================================");
-        $display("AGNI-X MAC 1000-CASE SIGNED RANDOM TEST PASS");
-        $display("==============================================");
+        $display("======================================================");
+        $display(" AGNI-X MAC EXHAUSTIVE SIGNED VERIFICATION PASSED");
+        $display("======================================================");
+        $display("  Width              : %0d bits", WIDTH);
+        $display("  Input combinations : 65,536");
+        $display("  Failed             : 0");
+        $display("  Status             : PASS");
+        $display("======================================================");
         $display("");
 
         $finish;
     end
 
 
-    // ------------------------------------------------------------
-    // Random signed verification task
-    // ------------------------------------------------------------
-    task automatic run_random_signed_tests(input integer NUM_TESTS);
+    // ============================================================
+    // Exhaustive signed verification
+    // ============================================================
+    task automatic run_exhaustive_tests;
 
-        integer i;
+        integer ai;
+        integer bi;
+        integer count;
 
-        logic signed [WIDTH-1:0] rand_a;
-        logic signed [WIDTH-1:0] rand_b;
+        logic signed [WIDTH-1:0] test_a;
+        logic signed [WIDTH-1:0] test_b;
 
         logic signed [(2*WIDTH)-1:0] expected_product;
         logic signed [(2*WIDTH)-1:0] expected_acc;
 
         begin
 
-            // Start from known state
-            rst = 1;
-            en  = 0;
-            a   = 0;
-            b   = 0;
+            // ----------------------------------------------------
+            // Reset before exhaustive test
+            // ----------------------------------------------------
+            rst = 1'b1;
+            en  = 1'b0;
+            a   = '0;
+            b   = '0;
 
-            #10;
+            @(posedge clk);
+            #1;
 
             if (acc !== 0)
-                $fatal(1,
-                    "RANDOM TEST RESET FAILED: acc = %0d",
+                $fatal(
+                    1,
+                    "EXHAUSTIVE RESET FAILED: acc=%0d",
                     acc
                 );
 
-            rst = 0;
-            en  = 1;
+            rst = 1'b0;
+            en  = 1'b1;
 
             expected_acc = '0;
+            count = 0;
 
-            for (i = 0; i < NUM_TESTS; i = i + 1) begin
+            $display("");
+            $display("======================================================");
+            $display(" STARTING 65,536-CASE EXHAUSTIVE SIGNED TEST");
+            $display("======================================================");
+            $display("");
 
-                // Generate WIDTH-bit random signed values
-                rand_a = $signed($urandom);
-                rand_b = $signed($urandom);
+            // ----------------------------------------------------
+            // IMPORTANT:
+            //
+            // Each individual pair is tested after resetting
+            // the accumulator so that the expected value is
+            // simply a*b.
+            //
+            // This prevents accumulator overflow from hiding
+            // multiplier errors.
+            // ----------------------------------------------------
 
-                // Drive DUT inputs
-                a = rand_a;
-                b = rand_b;
+            for (ai = -128; ai <= 127; ai = ai + 1) begin
 
-                // Calculate reference product
-                expected_product =
-                    $signed(rand_a) * $signed(rand_b);
+                for (bi = -128; bi <= 127; bi = bi + 1) begin
 
-                // Calculate expected accumulator
-                expected_acc =
-                    expected_acc + expected_product;
+                    test_a = ai;
+                    test_b = bi;
 
-                // Wait for rising edge
-                #10;
+                    // Reset accumulator for this pair
+                    rst = 1'b1;
+                    en  = 1'b0;
 
-                // Compare DUT against reference
-                if (acc !== expected_acc) begin
+                    @(posedge clk);
+                    #1;
 
-                    $display("");
-                    $display("!!!!!!!! RANDOM TEST FAILED !!!!!!!!");
-                    $display("Iteration       = %0d", i);
-                    $display("A               = %0d", rand_a);
-                    $display("B               = %0d", rand_b);
-                    $display("Expected product= %0d", expected_product);
-                    $display("Expected acc    = %0d", expected_acc);
-                    $display("Actual acc      = %0d", acc);
-                    $display("");
+                    if (acc !== 0)
+                        $fatal(
+                            1,
+                            "RESET FAILED at A=%0d B=%0d acc=%0d",
+                            ai,
+                            bi,
+                            acc
+                        );
 
-                    $fatal(1,
-                        "SIGNED RANDOM TEST FAILED"
-                    );
+                    rst = 1'b0;
+                    en  = 1'b1;
+
+                    a = test_a;
+                    b = test_b;
+
+                    expected_product =
+                        $signed(test_a) * $signed(test_b);
+
+                    @(posedge clk);
+                    #1;
+
+                    count = count + 1;
+
+                    if (acc !== expected_product) begin
+
+                        $display("");
+                        $display("!!!!!!!! EXHAUSTIVE TEST FAILED !!!!!!!!");
+                        $display("Case              = %0d", count);
+                        $display("A                 = %0d", test_a);
+                        $display("B                 = %0d", test_b);
+                        $display("Expected product  = %0d",
+                                 expected_product);
+                        $display("Actual acc        = %0d", acc);
+                        $display("");
+
+                        $fatal(
+                            1,
+                            "EXHAUSTIVE SIGNED MAC TEST FAILED"
+                        );
+                    end
+
+
+                    // Progress every 4096 cases
+                    if ((count % 4096) == 0) begin
+                        $display(
+                            "EXHAUSTIVE TEST: %0d / 65536 PASSED",
+                            count
+                        );
+                    end
+
                 end
-
-                // Progress output every 100 tests
-                if (((i + 1) % 100) == 0) begin
-                    $display(
-                        "SIGNED RANDOM TEST: %0d / %0d PASSED | acc = %0d",
-                        i + 1,
-                        NUM_TESTS,
-                        acc
-                    );
-                end
-
             end
 
             $display("");
             $display(
-                "ALL %0d SIGNED RANDOM TESTS PASSED.",
-                NUM_TESTS
+                "ALL 65,536 SIGNED INPUT COMBINATIONS PASSED."
             );
             $display("");
 
