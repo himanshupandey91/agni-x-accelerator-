@@ -1,25 +1,27 @@
-module agni_x_mac (
-    input  logic        clk,
-    input  logic        rst,
-    input  logic        enable,
+`timescale 1ns/1ps
 
-    input  logic [7:0]  a,
-    input  logic [7:0]  b,
+module mac #(
+    parameter WIDTH = 8
+)(
+    input  logic                   clk,
+    input  logic                   rst,
+    input  logic                   en,
 
-    output logic [15:0] acc
+    input  logic signed [WIDTH-1:0] a,
+    input  logic signed [WIDTH-1:0] b,
+
+    output logic signed [(2*WIDTH)-1:0] acc
 );
 
-    logic [15:0] product;
+    logic signed [(2*WIDTH)-1:0] product;
+
+    assign product = a * b;
 
     always_ff @(posedge clk) begin
-        if (rst) begin
-            product <= 16'd0;
-            acc     <= 16'd0;
-        end
-        else if (enable) begin
-            product <= a * b;
-            acc     <= acc + (a * b);
-        end
+        if (rst)
+            acc <= '0;
+        else if (en)
+            acc <= acc + product;
     end
 
 endmodule
