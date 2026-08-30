@@ -96,7 +96,51 @@ module mac_tb;
 
         $display("TEST 4 PASSED: acc = %0d", acc);
 
-        $display("AGNI-X MAC DAY 10 TEST COMPLETE.");
+        // ==================================================
+        // DAY 11 — SIGNED ARITHMETIC TESTS
+        // ==================================================
+
+        // Reset
+        rst = 1;
+        en  = 0;
+        #10;
+
+        rst = 0;
+        en  = 1;
+
+        // -3 × 4 = -12
+        a = -3;
+        b = 4;
+        #10;
+
+        if (acc !== -16'sd12)
+            $fatal(1, "SIGNED TEST 1 FAILED: acc = %0d", acc);
+
+        $display("SIGNED TEST 1 PASSED: acc = %0d", acc);
+
+        // -2 × -5 = +10
+        // -12 + 10 = -2
+        a = -2;
+        b = -5;
+        #10;
+
+        if (acc !== -16'sd2)
+            $fatal(1, "SIGNED TEST 2 FAILED: acc = %0d", acc);
+
+        $display("SIGNED TEST 2 PASSED: acc = %0d", acc);
+
+        // 7 × -3 = -21
+        // -2 - 21 = -23
+        a = 7;
+        b = -3;
+        #10;
+
+        if (acc !== -16'sd23)
+            $fatal(1, "SIGNED TEST 3 FAILED: acc = %0d", acc);
+
+        $display("SIGNED TEST 3 PASSED: acc = %0d", acc);
+
+        $display("AGNI-X MAC DAY 11 SIGNED TEST COMPLETE.");
 
         $finish;
 
