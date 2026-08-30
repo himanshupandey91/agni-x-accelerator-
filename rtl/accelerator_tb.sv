@@ -34,6 +34,7 @@ module accelerator_tb;
         rst = 0;
         en  = 1;
 
+        // TEST 1
         a = 2;
         b = 3;
         #10;
@@ -43,6 +44,7 @@ module accelerator_tb;
 
         $display("TEST 1 PASSED: acc = %0d", acc);
 
+        // TEST 2
         a = 4;
         b = 5;
         #10;
@@ -52,6 +54,7 @@ module accelerator_tb;
 
         $display("TEST 2 PASSED: acc = %0d", acc);
 
+        // TEST 3
         a = 3;
         b = 4;
         #10;
@@ -60,6 +63,41 @@ module accelerator_tb;
             $fatal(1, "TEST 3 FAILED: acc = %0d", acc);
 
         $display("TEST 3 PASSED: acc = %0d", acc);
+
+        // RESET BEFORE TEST 4
+        en  = 0;
+        rst = 1;
+        #10;
+
+        if (acc !== 16'sd0)
+            $fatal(1, "RESET FAILED: acc = %0d", acc);
+
+        $display("RESET PASSED: acc = %0d", acc);
+
+        // TEST 4: DOT PRODUCT
+        rst = 0;
+        en  = 1;
+
+        a = 2;
+        b = 5;
+        #10;
+
+        a = 3;
+        b = 6;
+        #10;
+
+        a = 4;
+        b = 7;
+        #10;
+
+        a = 5;
+        b = 8;
+        #10;
+
+        if (acc !== 16'sd96)
+            $fatal(1, "TEST 4 FAILED: acc = %0d", acc);
+
+        $display("TEST 4 PASSED: acc = %0d", acc);
 
         $display("AGNI-X ACCELERATOR TEST COMPLETE.");
 
