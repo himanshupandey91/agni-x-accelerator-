@@ -22,86 +22,133 @@ module accelerator_tb;
 
     always #5 clk = ~clk;
 
+    integer i;
+    integer expected;
+    integer passed;
+
     initial begin
+
         clk = 0;
         rst = 1;
         en  = 0;
         a   = 0;
         b   = 0;
 
+        passed = 0;
+
         #10;
 
         rst = 0;
         en  = 1;
 
-        // TEST 1
+        // -----------------------------
+        // BASIC ACCUMULATION TEST
+        // -----------------------------
+
         a = 2;
         b = 3;
         #10;
 
         if (acc !== 16'sd6)
-            $fatal(1, "TEST 1 FAILED: acc = %0d", acc);
+            $fatal(1, "BASIC TEST FAILED: acc=%0d", acc);
 
-        $display("TEST 1 PASSED: acc = %0d", acc);
+        passed = passed + 1;
+        $display("BASIC TEST PASSED: acc=%0d", acc);
 
-        // TEST 2
-        a = 4;
-        b = 5;
-        #10;
 
-        if (acc !== 16'sd26)
-            $fatal(1, "TEST 2 FAILED: acc = %0d", acc);
+        // -----------------------------
+        // RESET TEST
+        // -----------------------------
 
-        $display("TEST 2 PASSED: acc = %0d", acc);
-
-        // TEST 3
-        a = 3;
-        b = 4;
-        #10;
-
-        if (acc !== 16'sd38)
-            $fatal(1, "TEST 3 FAILED: acc = %0d", acc);
-
-        $display("TEST 3 PASSED: acc = %0d", acc);
-
-        // RESET BEFORE TEST 4
         en  = 0;
         rst = 1;
+
         #10;
 
         if (acc !== 16'sd0)
-            $fatal(1, "RESET FAILED: acc = %0d", acc);
+            $fatal(1, "RESET TEST FAILED: acc=%0d", acc);
 
-        $display("RESET PASSED: acc = %0d", acc);
+        passed = passed + 1;
+        $display("RESET TEST PASSED: acc=%0d", acc);
 
-        // TEST 4: DOT PRODUCT
+
+        // -----------------------------
+        // SIGNED MULTIPLICATION TEST
+        // -----------------------------
+
         rst = 0;
         en  = 1;
 
-        a = 2;
-        b = 5;
+        a = -3;
+        b = 4;
+
         #10;
 
-        a = 3;
-        b = 6;
+        if (acc !== -16'sd12)
+            $fatal(1, "SIGNED TEST FAILED: acc=%0d", acc);
+
+        passed = passed + 1;
+        $display("SIGNED TEST PASSED: acc=%0d", acc);
+
+
+        // -----------------------------
+        // RANDOM ACCUMULATION TEST
+        // -----------------------------
+
+        rst = 1;
+        en  = 0;
+
         #10;
 
-        a = 4;
-        b = 7;
-        #10;
+        rst = 0;
+        en  = 1;
 
-        a = 5;
-        b = 8;
-        #10;
+        expected = 0;
 
-        if (acc !== 16'sd96)
-            $fatal(1, "TEST 4 FAILED: acc = %0d", acc);
+        for (i = 0; i < 10000; i = i + 1) begin
 
-        $display("TEST 4 PASSED: acc = %0d", acc);
+            a = $signed($urandom_range(255,0));
+            b = $signed($urandom_range(255,0));
 
-        $display("AGNI-X ACCELERATOR TEST COMPLETE.");
+            expected = expected + (a * b);
+
+            #10;
+
+            if (acc !== expected[15:0]) begin
+                $fatal(
+                    1,
+                    "RANDOM TEST FAILED at case %0d: a=%0d b=%0d acc=%0d expected=%0d",
+                    i,
+                    a,
+                    b,
+                    acc,
+                    expected
+                );
+            end
+
+        end
+
+        $display("");
+        $display("==============================================");
+        $display("10,000 RANDOM ACCUMULATION TESTS PASSED");
+        $display("==============================================");
+        $display("");
+
+
+        // -----------------------------
+        // FINAL RESULT
+        // -----------------------------
+
+        $display("==============================================");
+        $display("AGNI-X ACCELERATOR VERIFICATION PASSED");
+        $display("Basic tests : PASSED");
+        $display("Reset test  : PASSED");
+        $display("Signed test : PASSED");
+        $display("Random tests: 10,000 PASSED");
+        $display("==============================================");
 
         $finish;
+
     end
 
 endmodule
