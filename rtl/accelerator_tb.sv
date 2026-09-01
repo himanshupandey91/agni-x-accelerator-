@@ -36,7 +36,17 @@ module accelerator_tb;
 
         passed = 0;
 
+        // -----------------------------
+        // INITIAL RESET
+        // -----------------------------
+
         #10;
+
+        if (acc !== 16'sd0)
+            $fatal(1, "INITIAL RESET FAILED: acc=%0d", acc);
+
+        passed = passed + 1;
+        $display("INITIAL RESET PASSED: acc=%0d", acc);
 
         rst = 0;
         en  = 1;
@@ -53,15 +63,45 @@ module accelerator_tb;
             $fatal(1, "BASIC TEST FAILED: acc=%0d", acc);
 
         passed = passed + 1;
-        $display("BASIC TEST PASSED: acc=%0d", acc);
+        $display("BASIC TEST PASSED: 2 x 3 = %0d", acc);
 
+        // -----------------------------
+        // SECOND ACCUMULATION
+        // -----------------------------
+
+        a = 4;
+        b = 5;
+        #10;
+
+        if (acc !== 16'sd26)
+            $fatal(1, "SECOND TEST FAILED: acc=%0d", acc);
+
+        passed = passed + 1;
+        $display("SECOND TEST PASSED: acc=%0d", acc);
+
+        // -----------------------------
+        // ENABLE HOLD TEST
+        // -----------------------------
+
+        en = 0;
+
+        a = 100;
+        b = 100;
+
+        #10;
+
+        if (acc !== 16'sd26)
+            $fatal(1, "ENABLE HOLD FAILED: acc=%0d", acc);
+
+        passed = passed + 1;
+        $display("ENABLE HOLD TEST PASSED: acc=%0d", acc);
 
         // -----------------------------
         // RESET TEST
         // -----------------------------
 
-        en  = 0;
         rst = 1;
+        en  = 0;
 
         #10;
 
@@ -70,7 +110,6 @@ module accelerator_tb;
 
         passed = passed + 1;
         $display("RESET TEST PASSED: acc=%0d", acc);
-
 
         // -----------------------------
         // SIGNED MULTIPLICATION TEST
@@ -90,7 +129,6 @@ module accelerator_tb;
         passed = passed + 1;
         $display("SIGNED TEST PASSED: acc=%0d", acc);
 
-
         // -----------------------------
         // RANDOM ACCUMULATION TEST
         // -----------------------------
@@ -103,7 +141,7 @@ module accelerator_tb;
         rst = 0;
         en  = 1;
 
-        expected = 0;
+        expected = -12;
 
         for (i = 0; i < 10000; i = i + 1) begin
 
@@ -133,7 +171,6 @@ module accelerator_tb;
         $display("10,000 RANDOM ACCUMULATION TESTS PASSED");
         $display("==============================================");
         $display("");
-
 
         // -----------------------------
         // FINAL RESULT
